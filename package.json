@@ -1,0 +1,50 @@
+{
+  "name": "@flytrap-qa/mcp",
+  "version": "0.1.0",
+  "description": "MCP server that lets your coding agent read FlyTrap crawl results: bugs with evidence, screen graphs, network hosts, SDKs and build diffs for your own apps.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "flytrap-mcp": "bin/flytrap-mcp.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "skills",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node bin/flytrap-mcp.js",
+    "test": "node --test test/*.test.js",
+    "lint": "node --check bin/flytrap-mcp.js && node --check src/*.js src/tools/*.js",
+    "inspect": "npx @modelcontextprotocol/inspector node bin/flytrap-mcp.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FlyTrap-QA/mcp.git"
+  },
+  "homepage": "https://flytrap.dev/mcp",
+  "bugs": "https://github.com/FlyTrap-QA/mcp/issues",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "mobile",
+    "qa",
+    "android",
+    "ios",
+    "testing",
+    "flytrap"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "zod": "^3.25.76"
+  }
+}
