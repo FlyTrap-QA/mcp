@@ -6,7 +6,7 @@ FlyTrap runs your real Android or iOS build on real devices and records everythi
 
 ## Quick start
 
-1. Sign in at [app.flytrap.dev](https://app.flytrap.dev), open **Settings > API keys** and create a key. Pick the `read` scope unless you want the agent to be able to queue new crawls.
+1. Sign in at [dashboard.flytrap.dev](https://dashboard.flytrap.dev), open **Settings > API keys** and create a key. Pick the `read` scope unless you want the agent to be able to queue new crawls.
 2. Add the server to your agent:
 
 ```json
@@ -59,6 +59,12 @@ Your projects (need `FLYTRAP_API_KEY`):
 | `get_bug_evidence` | Scenario, failed step, screenshots and XML (signed URLs), logcat error window, failed network calls, performance peaks, a ready `ai_prompt` |
 | `get_screen_graph` | Screens reached and the tap edges between them |
 | `get_network_hosts` | Hosts contacted with call counts, bytes and error rates |
+| `search_apps` | Describe an app in plain language, get the crawled public apps whose observed features cover it, with matched and missing requirements |
+| `get_ux_benchmark` | Your build's features next to the same feature in competitor and same-genre apps, with screenshots |
+| `list_competitors` | Competitors pinned to a project's UX benchmark |
+| `find_competitors` | Search crawled public apps and Google Play for apps to pin |
+| `add_competitor` | Pin a crawled app, or create a store project from a Google Play package and pin it (`crawl` scope, `confirm: true` to create) |
+| `remove_competitor` | Unpin a competitor (`crawl` scope) |
 | `compare_builds` | SDK, permission, deep link, host, bug and screen diff between two builds |
 | `start_crawl` | Queues a new crawl of the current build. Needs the `crawl` scope and `confirm: true` |
 
@@ -78,7 +84,7 @@ The only setting is `FLYTRAP_API_KEY`: your personal key from Settings > API key
 - Keys are scoped. A `read` key cannot start crawls, create keys or change billing, even if the agent asks. Revoke keys any time in the dashboard.
 - Keys inherit the project permissions of the user who created them. A key never sees another account's private projects.
 - Tool output is bounded (log windows, call caps, 4 MiB per response) and marked as untrusted app data, since bug titles, log lines and URLs originate from the crawled app and its traffic.
-- `start_crawl` is the only mutating tool. It requires an explicit `confirm: true` and a key created with the `crawl` scope.
+- `start_crawl`, `add_competitor` and `remove_competitor` are the only tools that change anything; they need a key created with the `crawl` scope. Queuing a crawl (`start_crawl`, or `add_competitor` with a Google Play package) also requires an explicit `confirm: true`.
 
 ## REST instead of MCP
 

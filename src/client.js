@@ -78,6 +78,7 @@ export const createClient = ({apiUrl, apiKey, fetchImpl = globalThis.fetch, user
     return {
         get: (path, options) => request('GET', path, options),
         post: (path, options) => request('POST', path, options),
+        delete: (path, options) => request('DELETE', path, options),
         hasKey: Boolean(apiKey),
     }
 }

@@ -63,7 +63,7 @@ test('project tools require a key and surface API errors with hints', async () =
         'POST /project/projects/7/crawl': [403, {message: 'API key scope does not permit this endpoint'}],
     }, calls))
     const projects = await client.callTool({name: 'list_projects', arguments: {q: 'my'}})
-    assert.equal(projects.structuredContent.projects[0].dashboard_url, 'https://app.flytrap.dev/projects/7')
+    assert.equal(projects.structuredContent.projects[0].dashboard_url, 'https://dashboard.flytrap.dev/projects/7')
     assert.equal(calls.at(-1).headers.authorization, `Bearer ${KEY}`)
 
     const builds = await client.callTool({name: 'list_builds', arguments: {project_id: 7}})
@@ -82,4 +82,77 @@ test('project tools require a key and surface API errors with hints', async () =
     const missing = await client.callTool({name: 'get_project', arguments: {project_id: 8}})
     assert.equal(missing.isError, true)
     assert.match(missing.content[0].text, /no access to this project/)
+})
+
+test('benchmark and competitor tools map to the API and gate project creation on confirm', async () => {
+    const calls = []
+    const client = await connect({apiUrl: 'https://api.test', apiKey: KEY}, fakeFetch({
+        'GET /project/relevant-apps': [200, {
+            match: 'genre', genre: 'Finance',
+            project: {id: 7, name: 'My app', package_name: 'com.me', platform: 'android'},
+            summary: {feature_count: 2, apps_compared: 1, screens_matched: 1, overlap_ratio: 50},
+            features: [{functional_id: 'login', functional_display_name: 'Login', shared_app_count: 1, screenshot_app_count: 1,
+                screen_count: 5, screens: [1, 2, 3, 4, 5].map(i => ({name: `s${i}`, url: `https://signed/${i}`}))}],
+            apps: [{project: {id: 9, name: 'Rival', package_name: 'com.rival', platform: 'android'}, source: 'competitor',
+                download_count: 10, shared_feature_count: 1, feature_count: 3, overlap_ratio: 50, screens_matched: 1,
+                features: [{functional_id: 'login', app_specific_name: 'Sign in', screens: [{name: 'r1', url: null}]}]}],
+        }],
+        'POST /project/app-search': init => [200, {
+            query: JSON.parse(init.body).query,
+            interpretation: {app_kind: 'budgeting', platform: 'android', plan_cached: false, requirements: []},
+            summary: {apps_indexed: 100, features_indexed: 1000, apps_considered: 100, apps_matched: 1},
+            apps: [{project: {id: 9, name: 'Rival', package_name: 'com.rival', platform: 'android', genre: 'Finance'},
+                match_score: 80, requirement_coverage: 70, app_kind_score: 90, feature_count: 3,
+                matched_features: [{functional_id: 'budget', functional_display_name: 'Budget', score: 0.9, requirements: ['budget']}],
+                unmatched_requirements: ['reminders']}],
+            usage: {estimated_cost_usd: 0.001},
+        }],
+        'GET /project/projects/7/competitors': [200, [{id: 9, name: 'Rival', package_name: 'com.rival', platform: 'android', added_at: '2026-01-01T00:00:00Z'}]],
+        'GET /project/projects/7/competitor-candidates': [200, [{id: 9, name: 'Rival', package_name: 'com.rival', platform: 'android', is_competitor: true}]],
+        'GET /project/market-apps': [200, [{appId: 'com.rival', title: 'Rival'}, {appId: 'com.newapp', title: 'New app', developer: 'Dev'}]],
+        'POST /project/projects': init => [201, {id: 42, name: 'New app', package_name: JSON.parse(init.body).package_name, platform: 'android', source: 'playstore'}],
+        'POST /project/projects/7/competitors': [201, [{id: 9, name: 'Rival', package_name: 'com.rival', platform: 'android'}, {id: 42, name: 'New app', package_name: 'com.newapp', platform: 'android'}]],
+        'DELETE /project/projects/7/competitors/42': [200, [{id: 9, name: 'Rival', package_name: 'com.rival', platform: 'android'}]],
+    }, calls))
+
+    const bench = await client.callTool({name: 'get_ux_benchmark', arguments: {project_id: 7, match: 'overlap'}})
+    assert.equal(bench.isError, undefined)
+    assert.deepEqual(calls.at(-1).query, {project_id: '7', match: 'overlap', limit: '10'})
+    assert.equal(bench.structuredContent.features[0].screens.length, 3, 'screens are capped per feature')
+    assert.equal(bench.structuredContent.apps[0].source, 'competitor')
+    assert.equal(bench.structuredContent.dashboard_url, 'https://dashboard.flytrap.dev/ux-benchmark/7')
+
+    const search = await client.callTool({name: 'search_apps', arguments: {query: 'budgeting app with reminders'}})
+    assert.equal(search.structuredContent.apps[0].package_name, 'com.rival')
+    assert.deepEqual(search.structuredContent.apps[0].unmatched_requirements, ['reminders'])
+    assert.equal(search.structuredContent.usage, undefined, 'token spend is not surfaced to the agent')
+
+    const found = await client.callTool({name: 'find_competitors', arguments: {project_id: 7, q: 'rival'}})
+    assert.equal(found.structuredContent.crawled_apps[0].project_id, 9)
+    assert.deepEqual(found.structuredContent.google_play_apps, [{package_name: 'com.newapp', name: 'New app', developer: 'Dev'}],
+        'store results already crawled are dropped')
+
+    const unconfirmed = await client.callTool({name: 'add_competitor', arguments: {project_id: 7, package_name: 'com.newapp'}})
+    assert.equal(unconfirmed.isError, true)
+    assert.match(unconfirmed.content[0].text, /confirm: true/)
+    assert.ok(!calls.some(c => c.method === 'POST' && c.path === '/project/projects'), 'no project created without confirm')
+
+    const neither = await client.callTool({name: 'add_competitor', arguments: {project_id: 7}})
+    assert.equal(neither.isError, true)
+
+    const crawledPin = await client.callTool({name: 'add_competitor', arguments: {project_id: 7, package_name: 'com.rival'}})
+    assert.equal(crawledPin.structuredContent.pinned_project_id, 9, 'an already crawled package pins without creating anything')
+    assert.equal(crawledPin.structuredContent.created_project, null)
+
+    const created = await client.callTool({name: 'add_competitor', arguments: {project_id: 7, package_name: 'com.newapp', confirm: true}})
+    assert.equal(created.structuredContent.created_project.id, 42)
+    const createCall = calls.find(c => c.method === 'POST' && c.path === '/project/projects')
+    assert.ok(createCall)
+    const pinCall = calls.filter(c => c.method === 'POST' && c.path === '/project/projects/7/competitors').at(-1)
+    assert.ok(pinCall)
+    assert.equal(created.structuredContent.competitors.length, 2)
+
+    const removed = await client.callTool({name: 'remove_competitor', arguments: {project_id: 7, competitor_project_id: 42}})
+    assert.equal(removed.structuredContent.competitors.length, 1)
+    assert.equal(calls.at(-1).method, 'DELETE')
 })

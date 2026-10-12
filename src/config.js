@@ -1,7 +1,7 @@
 export const API_URL = 'https://api.flytrap.dev'
 export const API_KEY_PATTERN = /^ft_live_[0-9a-f]{48}$/
-export const SIGNUP_URL = 'https://app.flytrap.dev/register'
-export const KEYS_URL = 'https://app.flytrap.dev/settings/api-keys'
+export const SIGNUP_URL = 'https://dashboard.flytrap.dev/signup'
+export const KEYS_URL = 'https://dashboard.flytrap.dev/settings/api-keys'
 
 export const loadConfig = (env = process.env) => {
     const apiKey = (env.FLYTRAP_API_KEY || '').trim() || null

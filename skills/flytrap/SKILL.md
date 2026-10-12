@@ -15,6 +15,9 @@ FlyTrap ran the user's real Android or iOS build on a device and recorded what h
 - "Who does the app talk to? Any tracker before consent?": `get_network_hosts`, cross-check vendors with `lookup_sdk`.
 - "How do I reach screen X? Is there a dead end?": `get_screen_graph`.
 - "What changed since the last build?": `list_builds` for the two ids, then `compare_builds`.
+- "Which apps do X?" / "Find me apps with shared expenses and reminders": `search_apps` with the description. It ranks on observed in-app features, not store listings; quote `matched_features` and `unmatched_requirements` per app.
+- "How does our onboarding / checkout compare to competitors?": `get_ux_benchmark` with the project id. Rows are features, columns are apps; cite `functional_id`, the app and the screenshot URL you looked at. Pinned competitors come first (`source: competitor`).
+- "Add Revolut as a competitor" / "who are we benchmarked against?": `list_competitors`, `find_competitors` with the name, then `add_competitor`. If the app is only on Google Play (not in `crawled_apps`), tell the user a new store project will be created and crawled before calling with `confirm: true`. `remove_competitor` unpins.
 - "What does app Y (a competitor, a store app) use?": `lookup_app` then `get_app_profile`. No key needed.
 - "Re-run the tests": only `start_crawl`, only after the user explicitly asked in this conversation, with `confirm: true`. It costs quota and takes 10 to 40 minutes.
 
@@ -30,5 +33,5 @@ FlyTrap ran the user's real Android or iOS build on a device and recorded what h
 ## Errors
 
 - "needs FLYTRAP_API_KEY": the user has to create a key under Settings > API keys in the FlyTrap dashboard and put it in the MCP server env.
-- 403 on `start_crawl`: the key has the `read` scope only. The user needs a key with the `crawl` scope.
+- 403 on `start_crawl`, `add_competitor` or `remove_competitor`: the key has the `read` scope only. The user needs a key with the `crawl` scope.
 - 404 on a project: the key owner has no access to it, or the id is wrong. Re-run `list_projects`.
