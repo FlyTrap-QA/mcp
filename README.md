@@ -70,14 +70,11 @@ Public catalog (no key): `lookup_app`, `get_app_profile`, `lookup_sdk`, `lookup_
 
 ## Configuration
 
-| Variable | Default | Meaning |
-| --- | --- | --- |
-| `FLYTRAP_API_KEY` | none | Personal API key from Settings > API keys (`ft_live_...`). Optional for catalog tools |
-| `FLYTRAP_API_URL` | `https://api.flytrap.dev` | Override for self-hosted or local API. Must be https unless localhost |
+The only setting is `FLYTRAP_API_KEY`: your personal key from Settings > API keys (`ft_live_...`). It is optional for the public catalog tools. The server always talks to `https://api.flytrap.dev`.
 
 ## Security
 
-- The key is sent only to `FLYTRAP_API_URL` as a `Bearer` header, over https. It is never written to disk or logged.
+- The key is sent only to `https://api.flytrap.dev` as a `Bearer` header, over https. It is never written to disk or logged.
 - Keys are scoped. A `read` key cannot start crawls, create keys or change billing, even if the agent asks. Revoke keys any time in the dashboard.
 - Keys inherit the project permissions of the user who created them. A key never sees another account's private projects.
 - Tool output is bounded (log windows, call caps, 4 MiB per response) and marked as untrusted app data, since bug titles, log lines and URLs originate from the crawled app and its traffic.

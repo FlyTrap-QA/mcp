@@ -26,13 +26,10 @@ const connect = async (config, fetchImpl) => {
     return client
 }
 
-test('loadConfig validates key format and url scheme', () => {
+test('loadConfig validates key format', () => {
     assert.deepEqual(loadConfig({}), {apiUrl: 'https://api.flytrap.dev', apiKey: null})
     assert.equal(loadConfig({FLYTRAP_API_KEY: ` ${KEY} `}).apiKey, KEY)
     assert.throws(() => loadConfig({FLYTRAP_API_KEY: 'sk-not-ours'}), /does not look like/)
-    assert.throws(() => loadConfig({FLYTRAP_API_URL: 'http://api.flytrap.dev'}), /https/)
-    assert.throws(() => loadConfig({FLYTRAP_API_URL: 'https://user:pw@api.flytrap.dev'}), /credentials/)
-    assert.equal(loadConfig({FLYTRAP_API_URL: 'http://localhost:3001/'}).apiUrl, 'http://localhost:3001')
 })
 
 test('public tools work without a key and never send one', async () => {

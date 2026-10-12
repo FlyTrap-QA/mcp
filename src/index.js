@@ -38,5 +38,5 @@ export const main = async () => {
     const {server, config} = createServer()
     const transport = new StdioServerTransport()
     await server.connect(transport)
-    process.stderr.write(`flytrap-mcp ${version} ready (${config.apiKey ? 'authenticated' : 'public catalog only'}, ${config.apiUrl})\n`)
+    process.stderr.write(`flytrap-mcp ${version} ready (${config.apiKey ? 'authenticated' : 'public catalog only'})\n`)
 }
