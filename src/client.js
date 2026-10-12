@@ -16,7 +16,7 @@ const hintFor = (status, hasKey) => {
             ? 'The key was rejected. It may be revoked or expired; create a new one under Settings > API keys.'
             : 'This tool needs FLYTRAP_API_KEY. Create a key in the FlyTrap dashboard under Settings > API keys.'
     if (status === 403)
-        return 'The key does not have the scope for this action. start_crawl needs a key created with the "crawl" scope.'
+        return 'The key does not have the scope for this action. start_crawl, add_competitor and remove_competitor need a key created with the "crawl" scope.'
     if (status === 404)
         return 'Not found, or the key owner has no access to this project.'
     if (status === 429)

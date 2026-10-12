@@ -13,7 +13,7 @@ const INSTRUCTIONS = `FlyTrap crawls real Android and iOS builds on devices and 
 screenshots and logs, network traffic, SDKs and permissions, performance. Public catalog tools (lookup_app,
 get_app_profile, lookup_sdk, lookup_permission) need no key. Project tools need FLYTRAP_API_KEY and only see the
 key owner's projects. Typical flow: list_projects -> list_bugs -> get_bug_evidence (cite run.crawl_run_id and the
-screenshot path). start_crawl is the only mutating tool; ask the user before calling it.`
+screenshot path). start_crawl, add_competitor and remove_competitor are the only mutating tools; ask the user before calling them.`
 
 export const createServer = ({config, fetchImpl} = {}) => {
     const resolved = config ?? loadConfig()
