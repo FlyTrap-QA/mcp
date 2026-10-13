@@ -1,6 +1,7 @@
 {
   "name": "@flytrap-qa/mcp",
-  "version": "0.1.3",
+  "mcpName": "io.github.FlyTrap-QA/mcp",
+  "version": "0.1.4",
   "description": "MCP server that lets your coding agent read FlyTrap crawl results: bugs with evidence, screen graphs, network hosts, SDKs and build diffs for your own apps.",
   "license": "MIT",
   "type": "module",

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.FlyTrap-QA/mcp",
+  "title": "FlyTrap",
+  "description": "FlyTrap mobile QA results for agents: bugs with evidence, screen graphs, network hosts, SDKs, diffs.",
+  "repository": {
+    "url": "https://github.com/FlyTrap-QA/mcp",
+    "source": "github"
+  },
+  "websiteUrl": "https://flytrap.dev/mcp",
+  "version": "0.1.4",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@flytrap-qa/mcp",
+      "version": "0.1.4",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "FLYTRAP_API_KEY",
+          "description": "FlyTrap API key (ft_live_...) from https://dashboard.flytrap.dev/settings/api-keys. Optional: public catalog tools work without it.",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}

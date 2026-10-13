@@ -1,4 +1,4 @@
-name: Publish to npm
+name: Publish to npm and MCP Registry
 on:
   push:
     tags: ['v*']
@@ -21,6 +21,20 @@ jobs:
         run: |
           test "v$(node -p "require('./package.json').version")" = "${GITHUB_REF_NAME}" \
             || { echo "tag ${GITHUB_REF_NAME} does not match package.json version"; exit 1; }
+          test "v$(node -p "require('./server.json').version")" = "${GITHUB_REF_NAME}" \
+            || { echo "tag ${GITHUB_REF_NAME} does not match server.json version"; exit 1; }
       - run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Install mcp-publisher
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+      - name: Publish to MCP Registry
+        run: |
+          ./mcp-publisher login github-oidc
+          for attempt in 1 2 3 4 5 6; do
+            ./mcp-publisher publish && exit 0
+            echo "publish attempt ${attempt} failed (npm metadata may not have propagated yet), retrying in 30s"
+            sleep 30
+          done
+          exit 1
