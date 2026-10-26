@@ -23,18 +23,37 @@ jobs:
             || { echo "tag ${GITHUB_REF_NAME} does not match package.json version"; exit 1; }
           test "v$(node -p "require('./server.json').version")" = "${GITHUB_REF_NAME}" \
             || { echo "tag ${GITHUB_REF_NAME} does not match server.json version"; exit 1; }
-      - run: npm publish --provenance --access public
+      - name: Publish to npm (skipped when the version is already there)
+        run: |
+          pkg="$(node -p "require('./package.json').name")"
+          ver="$(node -p "require('./package.json').version")"
+          if npm view "${pkg}@${ver}" version >/dev/null 2>&1; then
+            echo "${pkg}@${ver} is already on npm, skipping publish"
+          else
+            npm publish --provenance --access public
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Wait for npm to serve the new version
+        run: |
+          pkg="$(node -p "require('./package.json').name")"
+          ver="$(node -p "require('./package.json').version")"
+          for attempt in $(seq 1 40); do
+            npm view "${pkg}@${ver}" version >/dev/null 2>&1 && exit 0
+            echo "${pkg}@${ver} not visible on npm yet (attempt ${attempt}/40), retrying in 30s"
+            sleep 30
+          done
+          echo "npm did not serve ${pkg}@${ver} within 20 minutes"
+          exit 1
       - name: Install mcp-publisher
         run: |
           curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
       - name: Publish to MCP Registry
         run: |
           ./mcp-publisher login github-oidc
-          for attempt in 1 2 3 4 5 6; do
+          for attempt in $(seq 1 10); do
             ./mcp-publisher publish && exit 0
-            echo "publish attempt ${attempt} failed (npm metadata may not have propagated yet), retrying in 30s"
+            echo "publish attempt ${attempt}/10 failed (npm metadata may not have propagated yet), retrying in 30s"
             sleep 30
           done
           exit 1
