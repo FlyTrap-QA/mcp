@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.5
+
+- `server.json` lists the hosted server (`https://api.flytrap.dev/mcp`, Streamable HTTP with OAuth) under `remotes`, so registries show both the hosted and the npm option.
+- README: hosted setup first (Claude, Claude Code, Cursor, VS Code, Devin), then the local package.
+
 ## 0.1.4
 
 - Listed in the official MCP Registry as `io.github.FlyTrap-QA/mcp` (`server.json` + `mcpName` in package.json); the release workflow now publishes to the registry after npm.
