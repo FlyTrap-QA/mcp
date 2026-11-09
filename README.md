@@ -1,12 +1,30 @@
 # @flytrap-qa/mcp
 
-MCP server for [FlyTrap](https://flytrap.dev). It lets the coding agent you already use (Cursor, Claude Code, Codex, Windsurf, Zed, VS Code) read the results of FlyTrap crawls: the bugs FlyTrap found in your app with screenshots, UI XML, logcat and failed network calls, the screen graph, the hosts your build talks to, detected SDKs and permissions, and diffs between two builds.
+MCP server for [FlyTrap](https://flytrap.dev/mcp).
 
-FlyTrap runs your real Android or iOS build on real devices and records everything. This package only reads those results. It does not run apps, decompile binaries or touch your source tree.
+FlyTrap uses your Android or iOS app on real devices the way a new user would: signing in, going through onboarding, searching, hitting the wrong password screen. In about 30 minutes you get a list of where it breaks. This server puts that list in the coding agent you already use (Claude, Cursor, VS Code, Devin, Codex, Windsurf, Zed), with the screenshot, UI XML, logcat and failed network calls for every bug, so the agent can go and fix them.
 
-## Quick start
+It can also read the screen graph, the hosts your build talks to, detected SDKs and permissions, and what changed between two builds. It only reads results. It does not run apps, decompile binaries or touch your source tree.
 
-1. Sign in at [dashboard.flytrap.dev](https://dashboard.flytrap.dev), open **Settings > API keys** and create a key. Pick the `read` scope unless you want the agent to be able to queue new crawls.
+There are two ways to connect: the hosted server (nothing to install, you sign in with your FlyTrap account) or this npm package running locally with an API key.
+
+## Hosted server
+
+URL: `https://api.flytrap.dev/mcp` (Streamable HTTP, OAuth)
+
+Add it as a remote MCP server. Your agent opens a browser, you sign in to FlyTrap and click **Allow**. Read access is always on; tick **Also allow starting crawls** only if you want the agent to queue crawls. The connection shows up in the dashboard under **Settings > API keys**, and you can revoke it there.
+
+- **Claude** (claude.ai, Claude Desktop): Settings > Connectors > Add custom connector, paste the URL.
+- **Claude Code**: `claude mcp add --transport http flytrap https://api.flytrap.dev/mcp`, then run `/mcp`, pick flytrap and choose Authenticate.
+- **Cursor** (`~/.cursor/mcp.json`): `{ "mcpServers": { "flytrap": { "url": "https://api.flytrap.dev/mcp" } } }`
+- **VS Code** (`.vscode/mcp.json`): `{ "servers": { "flytrap": { "type": "http", "url": "https://api.flytrap.dev/mcp" } } }`
+- **Devin**: Customize > MCPs > Add custom MCP, HTTP transport, paste the URL, authentication OAuth, then Connect.
+
+If your client can't do the browser sign-in, send an API key instead: `Authorization: Bearer ft_live_...`.
+
+## Local package
+
+1. Sign in at [dashboard.flytrap.dev](https://dashboard.flytrap.dev), open **Settings > API keys** and create a key. Leave **Allow starting crawls** off unless you want the agent to be able to queue new crawls.
 2. Add the server to your agent:
 
 ```json
@@ -34,9 +52,9 @@ args = ["-y", "@flytrap-qa/mcp@latest"]
 env = { FLYTRAP_API_KEY = "ft_live_..." }
 ```
 
-3. Ask things like:
+## What to ask
 
-- "Why does onboarding break in my app? Show me the evidence."
+- "Where does my app break? Show me the evidence."
 - "Which third-party hosts does build 1184 talk to before the consent screen?"
 - "What changed between build 1180 and 1184: SDKs, permissions, bugs?"
 - "Which SDKs does com.booking ship on Android?" (public catalog, no key needed)
@@ -45,7 +63,7 @@ Without `FLYTRAP_API_KEY` the public catalog tools still work.
 
 ## Tools
 
-Your projects (need `FLYTRAP_API_KEY`):
+Your projects (need a sign-in on the hosted server, or `FLYTRAP_API_KEY` locally):
 
 | Tool | What it returns |
 | --- | --- |

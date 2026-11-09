@@ -1,8 +1,8 @@
 {
   "name": "@flytrap-qa/mcp",
   "mcpName": "io.github.FlyTrap-QA/mcp",
-  "version": "0.1.4",
-  "description": "MCP server that lets your coding agent read FlyTrap crawl results: bugs with evidence, screen graphs, network hosts, SDKs and build diffs for your own apps.",
+  "version": "0.1.5",
+  "description": "MCP server for FlyTrap: ask your coding agent where your Android or iOS app breaks, with the screenshot, logs and failed network calls for every bug.",
   "license": "MIT",
   "type": "module",
   "bin": {
